@@ -1,0 +1,7 @@
+get_references:
+  P8084_assembly: GCA_011320135.1
+  Pinf_mitochondrion: NC_002387.1
+
+get_reads:
+  lr: "config/Pbet_LR_SraAcc.csv"
+  sr: "config/Pbet_SR_SraAcc.csv"
