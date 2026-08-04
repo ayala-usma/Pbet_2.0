@@ -17,7 +17,7 @@
 #   2026-07-20
 #
 # Last Updated:
-#   2026-08-03
+#   2026-08-04
 #
 # License:
 #   GNU GPL-3.0
@@ -44,10 +44,6 @@ include: "workflow/rules/download_reads.smk"
 
 # -----------------------------------------------------------------------------
 #### Progress messages
-
-onstart:
-    print("\n--- WORKFLOW STARTED ---\n")
-
 
 onsuccess:
     print("\n--- WORKFLOW FINISHED! ---\n")

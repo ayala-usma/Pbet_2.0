@@ -10,4 +10,4 @@ dependencies:
   - polars=1.42.0
   - sra-tools=3.4.1
   - awscli=2.36.5
-  - pigz=2.8
+  - zstd=1.5.7

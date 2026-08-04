@@ -41,9 +41,10 @@ SR_ACCESSIONS = pl.read_csv(short_reads).select('acc').to_series().to_list()
 # -----------------------------------------------------------------------------
 #### Declaration of the rules
 
-rule download_lr:
+# This rules presumes that the user is logged in to the AWS CLI. Please do that
+# before running the pipeline.
 
-# This rule requires that the user is logged in the awscli.
+rule download_lr: 
     params:
         out_dir = "results/data/lr"
     output: 
@@ -60,6 +61,7 @@ rule download_lr:
         aws s3 cp \
         s3://pbet-annotation/Pbet_SQII_subreads/{wildcards.long_read} \
         {params.out_dir}/{wildcards.long_read} --quiet &> {log}"
+
 
 rule prefetch_sr:
     params:
@@ -105,7 +107,7 @@ rule compressing_sr:
         reads = "results/data/sr/{short_read}/{short_read}.fastq",
         sra = rules.prefetch_sr.output
     output: 
-        "results/data/sr/{short_read}/{short_read}.fastq.gz"
+        "results/data/sr/{short_read}/{short_read}.fq.zd"
     log:
         "logs/download_reads/sr/download_{short_read}/{short_read}.log"
     conda:
@@ -116,7 +118,9 @@ rule compressing_sr:
         "Downloading the Illumina raw short reads for the P. betacei \
         P8084 WGS project."
     shell:
-        "pigz -9 -p {threads} {input.reads} &>> {log} & rm {input.sra}"
+        "zstd --adapt --rm -f -v -T{threads} -o {input.reads}.tmp \
+        {input.reads} &>> {log} & rm {input.sra} & \
+        mv {input.reads}.tmp {output}"
 
 
 # -----------------------------------------------------------------------------
@@ -125,7 +129,7 @@ rule compressing_sr:
 rule subpipeline_download_reads:
     input:
         expand("results/data/lr/{lr_acc}", lr_acc=LR_ACCESSIONS),
-        expand("results/data/sr/{sr_acc}/{sr_acc}.fastq.gz",
+        expand("results/data/sr/{sr_acc}/{sr_acc}.fq.zd",
                 sr_acc=SR_ACCESSIONS)
     output:
         "logs/download_reads/process_download_reads.log"
