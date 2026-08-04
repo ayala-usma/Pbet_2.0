@@ -29,7 +29,6 @@
 # -----------------------------------------------------------------------------
 #### Declaration of the rules
 
-
 rule download_assembly:
     params:
         acc = lookup(within = config,
@@ -37,7 +36,7 @@ rule download_assembly:
     output:
         ref_gen = "results/ref/geno_P8084.fa"
     log:
-        "logs/download_P8084_assembly.log"
+        "logs/download_ref/download_P8084_assembly.log"
     conda:
         "../envs/downloads.yaml"
     message:
@@ -55,7 +54,7 @@ rule download_mitochondria:
     output:
         ref_mito = "results/ref/mito_Pinf.fa"
     log:
-        "logs/download_Pinf_mito.log"
+        "logs/download_ref/download_Pinf_mito.log"
     conda:
         "../envs/downloads.yaml"
     message:
@@ -63,3 +62,16 @@ rule download_mitochondria:
     shell:
         "efetch -db nuccore -id {params.acc} -format fasta \
         2>{log} 1>{output.ref_mito}"
+
+
+# -----------------------------------------------------------------------------
+#### Overall subpipeline rule
+
+rule subpipeline_download_ref:
+    input:
+        rules.download_assembly.output.ref_gen,
+        rules.download_mitochondria.output.ref_mito
+    output:
+        "logs/download_ref/process_download_ref.log"
+    shell:
+        "echo '***Reference genomes downloaded successfully!***' > {output}"

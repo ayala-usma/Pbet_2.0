@@ -3,5 +3,5 @@ get_references:
   Pinf_mitochondrion: NC_002387.1
 
 get_reads:
-  lr: "config/Pbet_LR_SraAcc.csv"
+  lr: "config/Pbet_LR_AWS.csv"
   sr: "config/Pbet_SR_SraAcc.csv"

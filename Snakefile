@@ -17,7 +17,7 @@
 #   2026-07-20
 #
 # Last Updated:
-#   2026-07-20
+#   2026-08-03
 #
 # License:
 #   GNU GPL-3.0
@@ -63,5 +63,5 @@ onerror:
 rule all:
     default_target: True
     input:
-        rules.download_assembly.output,
-        rules.download_mitochondria.output
+        rules.subpipeline_download_ref.output,
+        rules.subpipeline_download_reads.output
