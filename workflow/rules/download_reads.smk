@@ -93,8 +93,8 @@ rule fasterq_sr:
     threads:
         workflow.cores * 0.8
     message:
-        "Downloading the Illumina raw short reads for the P. betacei \
-        P8084 WGS project."
+        "Extraction of the Illumina raw short reads for the P. betacei \
+        P8084 WGS project from the SRA prefetch file."
     shell:
         "fasterq-dump -e {threads} --details --skip-technical --split-spot \
         --outdir {params.out_dir}/{wildcards.short_read} \
@@ -115,7 +115,7 @@ rule compressing_sr:
     threads:
         workflow.cores * 0.8
     message:
-        "Downloading the Illumina raw short reads for the P. betacei \
+        "Compressing the Illumina raw short reads for the P. betacei \
         P8084 WGS project."
     shell:
         "zstd --adapt --rm -f -v -T{threads} -o {input.reads}.tmp \
