@@ -40,6 +40,7 @@ configfile: "config/project_config.yaml"
 
 include: "workflow/rules/download_ref.smk"
 include: "workflow/rules/download_reads.smk"
+include: "workflow/rules/read_preprocessing.smk"
 
 
 # -----------------------------------------------------------------------------
@@ -60,4 +61,5 @@ rule all:
     default_target: True
     input:
         rules.subpipeline_download_ref.output,
-        rules.subpipeline_download_reads.output
+        rules.subpipeline_download_reads.output,
+        rules.subpipeline_read_preprocessing.output

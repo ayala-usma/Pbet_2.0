@@ -10,7 +10,7 @@ The original assembly was done with the Continuous Long Reads (CLRs) subreads vi
 ##### 1.2 Separating mitochondrial and nuclear genomes.
 One of the issues that came up in the last assembly was the lack of a clear mitochondrial scaffold and some contiguity of mitochondrial genes when compared to RefSeq mitochondrion of *P. infestans* (Accession: NC_002387.1) as seen below  
 
-![BLAST alignment of the NC_002387.1 complete mitochondrial genome of P. infestans](image.png)
+![BLAST alignment of the NC_002387.1 complete mitochondrial genome of P. infestans](assets/Pinf_mito_aln.png)
 
 In otder to address this, assembling separately mitochondrial and nuclear genomes might increase the chance of obtaining a higher quality assembly for the organelle. This can be achieved by using a reference mitochondrial genome, aligning long reads and short reads, and running the assembly workflows separately.
 

@@ -15,7 +15,7 @@
 #   2026-07-20
 #
 # Last Updated:
-#   2026-08-04
+#   2026-08-08
 #
 # License:
 #   GNU GPL-3.0
@@ -107,7 +107,7 @@ rule compressing_sr:
         reads = "results/data/sr/{short_read}/{short_read}.fastq",
         sra = rules.prefetch_sr.output
     output: 
-        "results/data/sr/{short_read}/{short_read}.fq.zd"
+        "results/data/sr/{short_read}/{short_read}.fastq.zst"
     log:
         "logs/download_reads/sr/download_{short_read}/{short_read}.log"
     conda:
@@ -118,10 +118,8 @@ rule compressing_sr:
         "Compressing the Illumina raw short reads for the P. betacei \
         P8084 WGS project."
     shell:
-        "zstd --adapt --rm -f -v -T{threads} -o {input.reads}.tmp \
-        {input.reads} &>> {log} & rm {input.sra} & \
-        mv {input.reads}.tmp {output}"
-
+        "zstd --adapt --rm -f -v -T{threads} -o {input.reads}.zst {input.reads} \
+        &>> {log} & rm {input.sra}"
 
 # -----------------------------------------------------------------------------
 #### Overall subpipeline rule
@@ -129,7 +127,7 @@ rule compressing_sr:
 rule subpipeline_download_reads:
     input:
         expand("results/data/lr/{lr_acc}", lr_acc=LR_ACCESSIONS),
-        expand("results/data/sr/{sr_acc}/{sr_acc}.fq.zd",
+        expand("results/data/sr/{sr_acc}/{sr_acc}.fastq.zst",
                 sr_acc=SR_ACCESSIONS)
     output:
         "logs/download_reads/process_download_reads.log"
