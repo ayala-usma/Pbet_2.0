@@ -1,6 +1,6 @@
 ###############################################################################
 # File: download_reads.smk
-# Version: 2.0
+# Version: 2.1
 #
 # Purpose:
 #   Download the long and short reads for the sequencing project of P. betacei
@@ -15,7 +15,7 @@
 #   2026-07-20
 #
 # Last Updated:
-#   2026-08-08
+#   2026-08-13
 #
 # License:
 #   GNU GPL-3.0
@@ -48,7 +48,7 @@ rule download_lr:
     params:
         out_dir = "results/data/lr"
     output: 
-        "results/data/lr/{long_read}"
+        "results/data/lr/{long_read}.subreads.bam"
     log:
         "logs/download_reads/lr/download_{long_read}.log"
     conda:
@@ -57,10 +57,11 @@ rule download_lr:
         "Downloading the PacBio long reads for the P. betacei \
         P8084 WGS project hosted in an AWS s3 bucket."
     shell:
-        "export AWS_MAX_ATTEMPTS=10 &\
+        """export AWS_MAX_ATTEMPTS=30
+        
         aws s3 cp \
         s3://pbet-annotation/Pbet_SQII_subreads/{wildcards.long_read} \
-        {params.out_dir}/{wildcards.long_read} --quiet &> {log}"
+        {params.out_dir}/{wildcards.long_read} --quiet &> {log}"""
 
 
 rule prefetch_sr:
@@ -91,7 +92,7 @@ rule fasterq_sr:
     conda:
         "../envs/downloads.yaml"
     threads:
-        workflow.cores * 0.8
+        workflow.cores * 0.9
     message:
         "Extraction of the Illumina raw short reads for the P. betacei \
         P8084 WGS project from the SRA prefetch file."
@@ -101,33 +102,33 @@ rule fasterq_sr:
         {params.out_dir}/{wildcards.short_read} &>> {log}"
 
 rule compressing_sr:
-    params:
-        out_dir = "results/data/sr"
     input:
-        reads = "results/data/sr/{short_read}/{short_read}.fastq",
+        reads = rules.fasterq_sr.output,
         sra = rules.prefetch_sr.output
     output: 
-        "results/data/sr/{short_read}/{short_read}.fastq.zst"
+        "results/data/sr/{short_read}/{short_read}.fq.zst"
     log:
         "logs/download_reads/sr/download_{short_read}/{short_read}.log"
     conda:
         "../envs/downloads.yaml"
     threads:
-        workflow.cores * 0.8
+        workflow.cores * 0.9
     message:
         "Compressing the Illumina raw short reads for the P. betacei \
         P8084 WGS project."
     shell:
-        "zstd --adapt --rm -f -v -T{threads} -o {input.reads}.zst {input.reads} \
-        &>> {log} & rm {input.sra}"
+        """zstd --adapt --rm -f -v -T{threads} -o {output} {input.reads} \
+        &>> {log}
+        
+        rm {input.sra}"""
 
 # -----------------------------------------------------------------------------
 #### Overall subpipeline rule
 
 rule subpipeline_download_reads:
     input:
-        expand("results/data/lr/{lr_acc}", lr_acc=LR_ACCESSIONS),
-        expand("results/data/sr/{sr_acc}/{sr_acc}.fastq.zst",
+        expand("results/data/lr/{lr_acc}.subreads.bam", lr_acc=LR_ACCESSIONS),
+        expand("results/data/sr/{sr_acc}/{sr_acc}.fq.zst",
                 sr_acc=SR_ACCESSIONS)
     output:
         "logs/download_reads/process_download_reads.log"

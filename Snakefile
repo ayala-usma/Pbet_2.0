@@ -1,6 +1,6 @@
 ###############################################################################
 # File: Snakefile
-# Version: 1.0
+# Version: 1.3
 #
 # Purpose:
 #   Main workflow entry point for the Pbet2.0 Snakemake pipeline.
@@ -17,15 +17,17 @@
 #   2026-07-20
 #
 # Last Updated:
-#   2026-08-04
+#   2026-08-13
 #
 # License:
 #   GNU GPL-3.0
 #
 # Dependencies:
+#   - Mamba or Conda
 #   - Snakemake
-#   - Please check the conda environment specifications in the envs/ directory
-#
+#   - For the dependencies of each subpipeline, please check the /workflow/envs
+#     directory
+#  
 ###############################################################################
 
 
@@ -36,7 +38,7 @@ configfile: "config/project_config.yaml"
 
 
 # -----------------------------------------------------------------------------
-#### Load rules
+#### Load subpipelines
 
 include: "workflow/rules/download_ref.smk"
 include: "workflow/rules/download_reads.smk"

@@ -1,6 +1,6 @@
 ###############################################################################
 # File: download_ref.smk
-# Version: 1.0
+# Version: 1.1
 #
 # Purpose:
 #   Download the reference genomes of P. betacei and P. infestans mitochondrion
@@ -16,13 +16,13 @@
 #   2026-07-20
 #
 # Last Updated:
-#   2026-07-22
+#   2026-08-13
 #
 # License:
 #   GNU GPL-3.0
 #
 # Dependencies:
-#   - Please check the conda environment specifications at envs/downloads.yaml
+#   - Conda environment specifications at envs/downloads.yaml
 #
 ###############################################################################
 
