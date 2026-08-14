@@ -16,7 +16,7 @@
 #   2026-08-08
 #
 # Last Updated:
-#   2026-08-13
+#   2026-08-14
 #
 # License:
 #   GNU GPL-3.0
@@ -105,7 +105,8 @@ rule ccs_filtering:
              sed -E 's/\".*\/([0-9]+)\"/\\1/g' > {input.met}.incl.mask
 
         zmwfilter -j {threads} --log-level INFO --log-file {log} \
-        --exclude {input.hifi_bam}.excl.mask {input.ccs_bam} {input.hifi_bam}.excl.temp.bam
+        --exclude {input.hifi_bam}.excl.mask {input.ccs_bam} \
+        {input.hifi_bam}.excl.temp.bam
 
         pbindex -j {threads} {input.hifi_bam}.excl.temp.bam
 
@@ -118,65 +119,74 @@ rule ccs_filtering:
         rm {input.ccs_bam} {input.ccs_bam}.pbi {input.met}.incl.mask
         rm {input.hifi_bam}.excl.temp.bam.pbi
         """
-        
-# rule sr_PE_fastp:
-#     params:
-#         min_qual = 30,
-#         min_len = 50,
-#     input:
-#     output:
-#     log:
-#         "logs/read_preprocessing/sr/filtering_{sr_path}.log"
-#     conda:
-#         "../envs/raw_data_preprocessing.yaml"
-#     threads:
-#         workflow.cores * 0.9
-#     message:
-#         "Performing the quality filtering of the paired-end short reads \
-#         using the fastp with base trimming using minimum base quality and \
-#         keeping a minimum read length"
-#     shell:
-#         """
-#         TO DO
-#         zstd -dc SRR14352918/SRR14352918.fq.zst | \
-#         fastp --interleaved_in --stdin -q {params.min_qual} \
-#         -o SRR14352918_R1.fq.gz -O SRR14352918_R2.fq.gz -h SRR14352918.html \
-#         --cut_front --cut_tail -l {params.min_len} -M {params.min_qual}
-#         -j SRR14352918.json -w {threads}
-#         """
 
-# rule sr_SE_fastp:
-#     params:
-#         min_qual = 30,
-#         min_len = 50,
-#     input:
-#     output:
-#     log:
-#         "logs/read_preprocessing/sr/filtering_{sr_path}.log"
-#     conda:
-#         "../envs/raw_data_preprocessing.yaml"
-#     threads:
-#         workflow.cores * 0.9
-#     message:
-#         "Performing the quality filtering of the paired-end short reads \
-#         using the fastp with base trimming using minimum base quality and \
-#         keeping a minimum read length"
-#     shell:
-#         """
-#         TO DO
-#         zstd -dc SRR14352918/SRR14352918.fq.zst | \
-#         fastp --interleaved_in --stdin -q {params.min_qual} \
-#         -o SRR14352918_R1.fq.gz -O SRR14352918_R2.fq.gz -h SRR14352918.html \
-#         --cut_front --cut_tail -l {params.min_len} -M {params.min_qual}
-#         -j SRR14352918.json -w {threads}
-#         """
+rule download_adapter_seq:
+    params:
+        adapter_url = "https://raw.githubusercontent.com/BioInfoTools/BBMap/refs/heads/master/resources/adapters.fa"
+    output:
+        "results/ref/BBMap_adapters.fa"
+    log:
+        "logs/read_preprocessing/sr/adapters.log"
+    conda:
+        "../envs/raw_data_preprocessing.yaml"
+    message:
+        "Downloading BBMap fasta file with the Illumina adapters used in \
+        multiple sequencing applications."
+    shell:
+        """
+        curl -o {output} {params.adapter_url}
+        """
+
+rule sr_fastp_filtering:
+    params:
+        min_qual = 30,
+        min_len = 80,
+        max_unq = 5
+    input:
+        raw_rds = "results/data/sr/{sr_accID}/{sr_accID}.fq.zst",
+        adapters = rules.download_adapter_seq.output
+    output:
+        clean_rds = "results/data/sr/{sr_accID}/{sr_accID}_clean.fq.gz",
+        html_rep = "results/data/sr/{sr_accID}/{sr_accID}.html",
+        json_rep = "results/data/sr/{sr_accID}/{sr_accID}.json"
+    log:
+        "logs/read_preprocessing/sr/filtering_{sr_accID}.log"
+    conda:
+        "../envs/raw_data_preprocessing.yaml"
+    threads:
+        workflow.cores * 0.9
+    message:
+        "Performing the quality filtering of the Illumina WGS short reads \
+        using fastp with base trimming using minimum base quality and \
+        keeping a minimum read length"
+    shell:
+        """
+        if [ "{wildcards.sr_accID}" == "SRR14352918" ]; then
+            zstd -dc {input.raw_rds} | \
+            fastp --interleaved_in --stdin -o {output.clean_rds} \
+            -O "results/data/sr/{wildcards.sr_accID}/{wildcards.sr_accID}_clean_R2.fq.gz" \
+            -q {params.min_qual} -h {output.html_rep} --cut_front \
+            --cut_tail -l {params.min_len} -M {params.min_qual} \
+            -u {params.max_unq} -j {output.json_rep} --detect_adapter_for_pe \
+            --adapter_fasta {input.adapters} -w {threads}
+
+        else
+            zstd -dc {input.raw_rds} | \
+            fastp --stdin -q {params.min_qual} -o {output.clean_rds} \
+            -h {output.html_rep} --cut_front --cut_tail -l {params.min_len} \
+            -M {params.min_qual} -u {params.max_unq} -j {output.json_rep} \
+            --adapter_fasta {input.adapters} -w {threads}
+        fi
+        """
 
 # -----------------------------------------------------------------------------
 #### Overall subpipeline rule
 
 rule subpipeline_read_preprocessing:
     input:
-        expand("{lr_full_path}.filtered_reads.bam", lr_full_path=LR_PATHS)
+        expand("{lr_full_path}.filtered_reads.bam", lr_full_path=LR_PATHS),
+        "results/ref/BBMap_adapters.fa",
+        expand("{sr_full_path}_clean.fq.gz", sr_full_path=SR_PATHS)
     output:
         "logs/read_preprocessing/preprocessing.log"
     shell:
