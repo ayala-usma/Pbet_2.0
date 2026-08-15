@@ -16,7 +16,7 @@
 #   2026-08-08
 #
 # Last Updated:
-#   2026-08-14
+#   2026-08-15
 #
 # License:
 #   GNU GPL-3.0
@@ -50,7 +50,7 @@ SR_PATHS = [
 
 rule lr_ccs: 
     params:
-        snr = 4.5
+        snr = 4
     input:
         "results/data/lr/{lr_path}.subreads.bam"
     output: 
@@ -77,7 +77,7 @@ rule lr_ccs:
 
 rule ccs_filtering:
     params:
-        min_len = 2500
+        min_len = 2000
     input:
         hifi_bam = rules.lr_ccs.output.hifi_bam,
         ccs_bam =  rules.lr_ccs.output.ccs_bam,
