@@ -13,3 +13,4 @@ dependencies:
   - samtools=1.24
   - jq=1.7
   - curl=8.21.0
+  - bbmap=40.05

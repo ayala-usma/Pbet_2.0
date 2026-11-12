@@ -1,0 +1,9 @@
+name: downloads
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - minibwa=0.7
+  - minimap2=2.31
+  - samtools=1.24
